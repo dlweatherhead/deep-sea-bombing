@@ -1,99 +1,83 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class GameState : MonoBehaviour {
+    public GameObject explosionObj;
+    
+    float score;
+    int lives = 3;
+    int teamkills;
+    Vector3 originPosition;
+    Quaternion originRotation;
+    float shake_decay;
+    float shake_intensity;
+    bool written;
 
-	float score = 0;
-	int lives = 3;
-	int teamkills = 0;
+    void Update() {
+        score += Time.deltaTime;
+        if (lives <= 0) {
+            if (written == false) {
+                PlayerPrefs.SetInt("Score", (int) score);
+                PlayerPrefs.SetInt("Murders", (int) teamkills);
 
-	Vector3 originPosition;
-	Quaternion originRotation;
-	float shake_decay;
-	float shake_intensity;
+                GameObject playerTemp = GameObject.FindWithTag("Player");
+                playerTemp.GetComponent<Rigidbody2D>().gravityScale = 1;
+                playerTemp.transform.rotation = new Quaternion(
+                    playerTemp.transform.rotation.x,
+                    playerTemp.transform.rotation.y,
+                    playerTemp.transform.rotation.z - 0.3f,
+                    playerTemp.transform.rotation.w);
 
-	public GameObject explosionObj;
+                written = true;
+            }
 
-	bool written = false;
+            for (int i = 0; i < 6; i++) {
+                Vector3 cam = new Vector3(Random.Range(-20, 20), Random.Range(-20, 20), -5);
+                GameObject expNew = Instantiate(explosionObj, cam, Quaternion.identity);
+                int randomNumber = Random.Range(2, 8);
+                Vector3 temp = new Vector3(randomNumber, randomNumber, 1);
+                expNew.transform.localScale = temp;
+            }
+        }
 
-	void Update()
-	{
-		score += Time.deltaTime;
-		if(lives <= 0)
-		{
-			if(written == false)
-			{
-				PlayerPrefs.SetInt ("Score", (int)score);
-				PlayerPrefs.SetInt("Murders", (int)teamkills);
+        if (shake_intensity > 0) {
+            transform.position = originPosition + Random.insideUnitSphere * shake_intensity;
 
-				GameObject playerTemp = GameObject.FindWithTag("Player");
-				playerTemp.GetComponent<Rigidbody2D>().gravityScale = 1;
-				playerTemp.transform.rotation = new Quaternion(
-					playerTemp.transform.rotation.x,
-					playerTemp.transform.rotation.y,
-					playerTemp.transform.rotation.z - 0.3f, 
-					playerTemp.transform.rotation.w);
+            transform.rotation = new Quaternion(
+                originRotation.x + Random.Range(-shake_intensity, shake_intensity) * 0.2f,
+                originRotation.y + Random.Range(-shake_intensity, shake_intensity) * 0.2f,
+                originRotation.z + Random.Range(-shake_intensity, shake_intensity) * 0.2f,
+                originRotation.w + Random.Range(-shake_intensity, shake_intensity) * 0.2f);
+            shake_intensity -= shake_decay;
+        }
 
-				written = true;
-			}
+        if (Input.GetKey("escape")) {
+            PlayerPrefs.SetInt("firstTime", -1);
+            Application.CancelQuit();
+        }
+    }
 
-			for(int i=0; i<6; i++)
-			{
-				Vector3 cam = new Vector3(Random.Range(-20,20), Random.Range(-20,20), -5);
-				GameObject expNew = (GameObject)Instantiate(explosionObj, cam, Quaternion.identity);
-				int randomNumber = Random.Range (2,8);
-				Vector3 temp = new Vector3(randomNumber, randomNumber, 1);
-				expNew.transform.localScale = temp;
-			}
-		}
+    public void changeLives(int livesLost) {
+        lives += livesLost;
+    }
 
-		if(shake_intensity > 0)
-		{
-			transform.position = originPosition + Random.insideUnitSphere * shake_intensity;
+    public void changeScore(float numbers) {
+        score += numbers;
+    }
 
-			transform.rotation =  new Quaternion(
-				originRotation.x + Random.Range(-shake_intensity,shake_intensity)*0.2f,
-				originRotation.y + Random.Range(-shake_intensity,shake_intensity)*0.2f,
-				originRotation.z + Random.Range(-shake_intensity,shake_intensity)*0.2f,
-				originRotation.w + Random.Range(-shake_intensity,shake_intensity)*0.2f);
-			shake_intensity -= shake_decay;
-		}
+    public void changeTeamkills(int kill) {
+        teamkills += kill;
+    }
 
-		if(Input.GetKey("escape"))
-		{
-			PlayerPrefs.SetInt("firstTime", -1);
-			Application.CancelQuit();
-		}
-		
-	}
+    public void OnGUI() {
+        GUI.Label(new Rect(10, 10, 100, 75), "Score: " + (int) (score));
+        GUI.Label(new Rect(100, 10, 190, 75), "Lives: " + lives);
+        GUI.Label(new Rect(190, 10, 280, 75), "Murders: " + teamkills);
+    }
 
-	public void changeLives(int livesLost)
-	{
-		lives += livesLost;
-	}
-
-	public void changeScore(float numbers)
-	{
-		score += numbers;
-	}
-
-	public void changeTeamkills(int kill)
-	{
-		teamkills += kill;
-	}
-
-	public void OnGUI()
-	{
-		GUI.Label(new Rect(10, 10, 100, 75), "Score: " + (int)(score));
-		GUI.Label(new Rect(100, 10, 190, 75), "Lives: " + lives);
-		GUI.Label(new Rect(190, 10, 280, 75), "Murders: " + teamkills);
-	}
-	
-	public void Shake()
-	{
-		originPosition = transform.position;
-		originRotation = transform.rotation;
-		shake_intensity = 0.04f;
-		shake_decay = 0.003f;
-	}
+    public void Shake() {
+        originPosition = transform.position;
+        originRotation = transform.rotation;
+        shake_intensity = 0.04f;
+        shake_decay = 0.003f;
+    }
 }
