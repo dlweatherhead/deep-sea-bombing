@@ -37,6 +37,8 @@ public class GameState : MonoBehaviour {
                 Vector3 temp = new Vector3(randomNumber, randomNumber, 1);
                 expNew.transform.localScale = temp;
             }
+
+            Invoke("LoadMainMenu", 3f);
         }
 
         if (shake_intensity > 0) {
@@ -56,7 +58,12 @@ public class GameState : MonoBehaviour {
         }
     }
 
-    public void changeLives(int livesLost) {
+    public void LoadMainMenu()
+    {
+        Application.LoadLevel(0);
+    }
+
+public void changeLives(int livesLost) {
         lives += livesLost;
     }
 
